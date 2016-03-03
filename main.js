@@ -37,19 +37,16 @@ function chart() {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  function update(data) {
+  var groups = {}
 
-    x.domain(d3.extent(data, function(d) { return d.x }))
-    y.domain(d3.extent(data, function(d) { return d.y }))
+  groups.x = svg.append("g")
+    .attr("class", "x axis")
+    .attr("transform", "translate(0," + height + ")")
 
-    svg.append("g")
-      .attr("class", "x axis")
-      .attr("transform", "translate(0," + height + ")")
-      .call(xAxis);
+  groups.y = svg.append("g")
+    .attr("class", "y axis")
 
-    svg.append("g")
-      .attr("class", "y axis")
-      .call(yAxis)
+  groups.x
       .append("text")
       .attr("transform", "rotate(-90)")
       .attr("y", 6)
@@ -57,9 +54,20 @@ function chart() {
       .style("text-anchor", "end")
       .text("Price ($)");
 
-    svg.append("path")
+  var path = svg.append("path")
+        .attr("class", "line")
+
+  function update(data) {
+
+    x.domain(d3.extent(data, function(d) { return d.x }))
+    y.domain(d3.extent(data, function(d) { return d.y }))
+
+    groups.x.call(xAxis);
+    groups.y.call(yAxis)
+
+    path
       .datum(data)
-      .attr("class", "line")
+      .transition(2000)
       .attr("d", line);
   }
 
@@ -74,13 +82,11 @@ var options = [
 
 ReactDOM.render(
   <div>
-    <h1>Hello, world!</h1>
     <Select.Async name="form-field-name"
-
-  loadOptions={loadOptions}
-  onChange={logAll} />
-</div>,
-  document.getElementById('example')
+                  loadOptions={loadOptions}
+                  onChange={fetchAndUpdate} />
+  </div>,
+  document.getElementById('select')
 );
 
 var update = chart()
@@ -98,16 +104,18 @@ function convertStock (data) {
   return points.map(convert)
 }
 
-d3.json(
-  "https://www.quandl.com/api/v3/datasets/GOOG/OTC_SETO/data.json",
-  function (data) {
-    logAll(data)
-    var points = convertStock(data)
-    logAll(points)
-    logAll(points[0])
-    update(points)
-  }
-)
+function fetchAndUpdate (selection) {
+  d3.json(
+    "https://www.quandl.com/api/v3/datasets/"+selection.value+"/data.json",
+    function (data) {
+      logAll(data)
+      var points = convertStock(data)
+      logAll(points)
+      logAll(points[0])
+      update(points)
+    }
+  )
+}
 
 function loadOptions (input, callback) {
   d3.json('datasets-100.json', function (options) {
