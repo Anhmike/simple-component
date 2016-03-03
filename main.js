@@ -13,8 +13,6 @@ function chart() {
       width = 960 - margin.left - margin.right,
       height = 500 - margin.top - margin.bottom;
 
-  var formatDate = d3.time.format("%d-%b-%y");
-
   var x = d3.time.scale()
         .range([0, width]);
 
@@ -30,8 +28,8 @@ function chart() {
         .orient("left");
 
   var line = d3.svg.line()
-        .x(function(d) { return x(d.date); })
-        .y(function(d) { return y(d.close); });
+        .x(function(d) { return x(d.x); })
+        .y(function(d) { return y(d.y); });
 
   var svg = d3.select("div#chart").append("svg")
         .attr("width", width + margin.left + margin.right)
@@ -39,13 +37,10 @@ function chart() {
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-  d3.tsv("data.tsv", type, update)
+  function update(data) {
 
-  function update(error, data) {
-    if (error) throw error;
-
-    x.domain(d3.extent(data, function(d) { return d.date; }));
-    y.domain(d3.extent(data, function(d) { return d.close; }));
+    x.domain(d3.extent(data, function(d) { return d.x }))
+    y.domain(d3.extent(data, function(d) { return d.y }))
 
     svg.append("g")
       .attr("class", "x axis")
@@ -68,11 +63,6 @@ function chart() {
       .attr("d", line);
   }
 
-  function type(d) {
-    d.date = formatDate.parse(d.date);
-    d.close = +d.close;
-    return d;
-  }
 
   return update
 }
@@ -96,17 +86,28 @@ ReactDOM.render(
 var update = chart()
 
 function convertStock (data) {
-  var points = data.data.dataset_data.data
+  function convert(d) {
+    return {
+      x: new Date(getDate(d)),
+      y: +getStock(d)
+    }
+  }
   function getStock(row) { return row[4] }
   function getDate(row) { return row[0] }
+  var points = data.dataset_data.data
+  return points.map(convert)
 }
 
-axios
-  .get("https://www.quandl.com/api/v3/datasets/WIKI/AAPL/data.json")
-  .then(function (data) {
+d3.json(
+  "https://www.quandl.com/api/v3/datasets/GOOG/OTC_SETO/data.json",
+  function (data) {
     logAll(data)
-    update(data)
-  })
+    var points = convertStock(data)
+    logAll(points)
+    logAll(points[0])
+    update(points)
+  }
+)
 
 function loadOptions (input, callback) {
   d3.json('datasets-100.json', function (options) {
