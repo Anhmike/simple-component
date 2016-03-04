@@ -49,14 +49,6 @@ var LineChart = React.createClass({
     groups.y = svg.append("g")
       .attr("class", "y axis")
 
-    groups.x
-      .append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 6)
-      .attr("dy", ".71em")
-      .style("text-anchor", "end")
-      .text("Price ($)");
-
     var path = svg.append("path")
           .attr("class", "line")
 
@@ -151,7 +143,6 @@ var SimpleComponent = React.createClass({
     return (<div>
       <span>{this.props.limit}</span>
       <Select.Async name="form-field-name"
-                    value={this.state.label}
                     loadOptions={this.loadOptions}
                     filterOptions={this.filterOptions}
                     onChange={this.onChange} />
