@@ -6,11 +6,6 @@ var Select = require('react-select')
 var lunr = require('lunr')
 require('bootstrap')
 
-var indexes = {
-  lunr: null,
-  options: null
-}
-
 var LineChart = React.createClass({
   componentDidMount: function () {
     var el = this.getDOMNode()
@@ -104,19 +99,48 @@ var SimpleComponent = React.createClass({
   getInitialState: function () {
     return { stock: [] }
   },
+  loadOptions: function (input, callback) {
+    var component = this
+    function createIndexes (options) {
+      var index = lunr(function () {
+        this.field('label', { boost: 10 })
+        this.ref('value')
+      })
+      options.map(index.add.bind(index))
+      return {
+        lunr: index,
+        options: options.reduce(function (p, c) {
+          p[c.value] = c
+          return p
+        }, {})
+      }
+    }
+    d3.json('data/datasets.json', function (options) {
+      if (component.props.limit) {
+        options = options.slice(0, component.props.limit)
+      }
+      component.indexes = createIndexes(options)
+      callback(null, {
+        options: options,
+        complete: true
+      })
+    })
+  },
   filterOptions: function (options, filter) {
-    if (indexes.lunr) {
-      var refs = indexes.lunr.search(filter)
-      return refs.map(function (r) { return indexes.options[r.ref] })
+    var component = this
+    if (this.indexes) {
+      var refs = this.indexes.lunr.search(filter)
+      return refs.map(function (r) { return component.indexes.options[r.ref] })
     } else {
       return []
     }
   },
   render: function () {
     return (<div>
+      <span>{this.props.limit}</span>
       <Select.Async name="form-field-name"
                     value={this.state.label}
-                    loadOptions={loadOptions}
+                    loadOptions={this.loadOptions}
                     filterOptions={this.filterOptions}
                     onChange={this.onChange} />
       <LineChart data={this.state.stock} />
@@ -125,7 +149,7 @@ var SimpleComponent = React.createClass({
 })
 
 ReactDOM.render(
-  <SimpleComponent />,
+  <SimpleComponent limit={1000} />,
   document.getElementById('component1')
 );
 ReactDOM.render(
@@ -146,30 +170,6 @@ function convertStock (data) {
   return points.map(convert)
 }
 
-function createIndexes (options) {
-  var index = lunr(function () {
-    this.field('label', { boost: 10 })
-    this.ref('value')
-  })
-  options.map(index.add.bind(index))
-  return {
-    lunr: index,
-    options: options.reduce(function (p, c) {
-      p[c.value] = c
-      return p
-    }, {})
-  }
-}
 
-function loadOptions (input, callback) {
-  d3.json('data/datasets.json', function (options) {
-    logAll(options)
-    indexes = createIndexes(options)
-    callback(null, {
-      options: options,
-      complete: true
-    })
-  })
-}
 
 function logAll() { console.log(arguments) }
