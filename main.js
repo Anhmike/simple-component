@@ -1,4 +1,4 @@
-// main.js
+
 var React = require('react')
 var ReactDOM = require('react-dom')
 var d3 = require('d3')
@@ -7,7 +7,6 @@ require('bootstrap')
 
 var LineChart = React.createClass({
   componentDidMount: function () {
-    console.log('did mount')
     var el = this.getDOMNode()
 
     // initially copied from http://bl.ocks.org/mbostock/3883245
@@ -76,7 +75,6 @@ var LineChart = React.createClass({
     }
   },
   componentDidUpdate: function () {
-    console.log('did update')
     this.feedData(this.props.data)
   },
   render: function () {
@@ -86,15 +84,13 @@ var LineChart = React.createClass({
 
 var SimpleComponent = React.createClass({
   onChange: function (selection) {
-    this.setState({ label: selection.label })
     component = this
+    component.setState({ label: selection.label })
     d3.json(
       "https://www.quandl.com/api/v3/datasets/"+selection.value+"/data.json",
       function (data) {
         logAll(data)
         var stock = convertStock(data)
-        //logAll(stock)
-        //logAll(stock[0])
         component.setState({ stock: stock })
       }
     )
@@ -105,7 +101,7 @@ var SimpleComponent = React.createClass({
   render: function () {
     return (<div>
       <Select.Async name="form-field-name"
-                    value="state.label"
+                    value={this.state.label}
                     loadOptions={loadOptions}
                     onChange={this.onChange} />
       <LineChart data={this.state.stock} />
@@ -115,7 +111,11 @@ var SimpleComponent = React.createClass({
 
 ReactDOM.render(
   <SimpleComponent />,
-  document.getElementById('select')
+  document.getElementById('component1')
+);
+ReactDOM.render(
+  <SimpleComponent />,
+  document.getElementById('component2')
 );
 
 function convertStock (data) {
