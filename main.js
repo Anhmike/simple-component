@@ -4,16 +4,16 @@ var ReactDOM = require('react-dom')
 var d3 = require('d3')
 var Select = require('react-select')
 var lunr = require('lunr')
-require('bootstrap')
 
 var LineChart = React.createClass({
   componentDidMount: function () {
     var el = this.getDOMNode()
+    var parentWidth = el.getBoundingClientRect().width
 
     // initially copied from http://bl.ocks.org/mbostock/3883245
 
     var margin = {top: 20, right: 20, bottom: 30, left: 50},
-        width = 960 - margin.left - margin.right,
+        width = parentWidth - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom;
 
     var x = d3.time.scale()
@@ -165,8 +165,16 @@ ReactDOM.render(
   document.getElementById('component1')
 );
 ReactDOM.render(
-  <SimpleComponent />,
+  <SimpleComponent limit={10000} />,
   document.getElementById('component2')
+);
+ReactDOM.render(
+  <SimpleComponent limit={20000} />,
+  document.getElementById('component3')
+);
+ReactDOM.render(
+  <SimpleComponent />,
+  document.getElementById('component4')
 );
 
 function logAll() { console.log(arguments) }
