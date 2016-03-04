@@ -118,7 +118,7 @@ function fetchAndUpdate (selection) {
 }
 
 function loadOptions (input, callback) {
-  d3.json('datasets-100.json', function (options) {
+  d3.json('data/datasets-100.json', function (options) {
     logAll(options)
     callback(null, {
       options: options,
