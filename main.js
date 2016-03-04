@@ -85,6 +85,18 @@ var LineChart = React.createClass({
 
 var SimpleComponent = React.createClass({
   onChange: function (selection) {
+    function convertStock (data) {
+      function convert(d) {
+        return {
+          x: new Date(getDate(d)),
+          y: +getStock(d)
+        }
+      }
+      function getStock(row) { return row[4] }
+      function getDate(row) { return row[0] }
+      var points = data.dataset_data.data
+      return points.map(convert)
+    }
     component = this
     component.setState({ label: selection.label })
     d3.json(
@@ -156,20 +168,5 @@ ReactDOM.render(
   <SimpleComponent />,
   document.getElementById('component2')
 );
-
-function convertStock (data) {
-  function convert(d) {
-    return {
-      x: new Date(getDate(d)),
-      y: +getStock(d)
-    }
-  }
-  function getStock(row) { return row[4] }
-  function getDate(row) { return row[0] }
-  var points = data.dataset_data.data
-  return points.map(convert)
-}
-
-
 
 function logAll() { console.log(arguments) }
