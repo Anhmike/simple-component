@@ -3,7 +3,13 @@ var React = require('react')
 var ReactDOM = require('react-dom')
 var d3 = require('d3')
 var Select = require('react-select')
+var lunr = require('lunr')
 require('bootstrap')
+
+var indexes = {
+  lunr: null,
+  options: null
+}
 
 var LineChart = React.createClass({
   componentDidMount: function () {
@@ -98,11 +104,20 @@ var SimpleComponent = React.createClass({
   getInitialState: function () {
     return { stock: [] }
   },
+  filterOptions: function (options, filter) {
+    if (indexes.lunr) {
+      var refs = indexes.lunr.search(filter)
+      return refs.map(function (r) { return indexes.options[r.ref] })
+    } else {
+      return []
+    }
+  },
   render: function () {
     return (<div>
       <Select.Async name="form-field-name"
                     value={this.state.label}
                     loadOptions={loadOptions}
+                    filterOptions={this.filterOptions}
                     onChange={this.onChange} />
       <LineChart data={this.state.stock} />
       </div>)
@@ -131,9 +146,25 @@ function convertStock (data) {
   return points.map(convert)
 }
 
+function createIndexes (options) {
+  var index = lunr(function () {
+    this.field('label', { boost: 10 })
+    this.ref('value')
+  })
+  options.map(index.add.bind(index))
+  return {
+    lunr: index,
+    options: options.reduce(function (p, c) {
+      p[c.value] = c
+      return p
+    }, {})
+  }
+}
+
 function loadOptions (input, callback) {
-  d3.json('data/datasets-100.json', function (options) {
+  d3.json('data/datasets.json', function (options) {
     logAll(options)
+    indexes = createIndexes(options)
     callback(null, {
       options: options,
       complete: true
