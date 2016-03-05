@@ -124,6 +124,7 @@ var SimpleComponent = React.createClass({
         options = options.slice(0, component.props.limit)
       }
       component.indexes = createIndexes(options)
+      component.setState({ size: options.length })
       callback(null, {
         options: options,
         complete: true
@@ -141,7 +142,7 @@ var SimpleComponent = React.createClass({
   },
   render: function () {
     return (<div>
-      <span>{this.props.limit}</span>
+      <span>{this.state.size}</span>
       <Select.Async name="form-field-name"
                     loadOptions={this.loadOptions}
                     filterOptions={this.filterOptions}
